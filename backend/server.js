@@ -280,11 +280,11 @@ app.use("/api", (req, res) => {
 
 // Serve the complete frontend from the same Express server.
 // This also allows opening http://localhost:5000/ without Live Server.
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(process.cwd(), "frontend")));
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(process.cwd(), "frontend/index.html"));
 });
 
 // ==========================================

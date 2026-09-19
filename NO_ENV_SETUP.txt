@@ -1,0 +1,13 @@
+AJV CollegeConnect - No .env setup
+
+1. Make sure MySQL is running and database `collegeconnect` exists with schema.sql applied.
+2. backend/config.js contains the local MySQL settings and JWT secret.
+3. From backend folder run: npm install
+4. Run: node seed.js
+5. Run: npm start
+6. Open: http://localhost:5000/
+
+Demo logins:
+Admin: admin / Admin@123
+Faculty: faculty01 through faculty10 / Faculty@123
+Students: STU001 through STU030 / Student@123

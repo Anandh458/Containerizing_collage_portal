@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AJV CollegeConnect • Students</title>
+<link rel="stylesheet" href="assets/srit-theme.css">
+<link rel="stylesheet" href="assets/professional-ui.css">
+<style>
+.student-page .student-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.student-page .student-toolbar input{flex:1;min-width:250px}
+.student-page .student-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px}
+.student-page .student-hero h2{margin:0 0 6px}
+.student-page .student-hero p{margin:0;color:#8ea4bd;font-size:13px}
+.student-page .student-kicker{font-size:10px;font-weight:900;letter-spacing:1.4px;color:#57d5ff;text-transform:uppercase}
+.student-page .table-wrap{margin-top:0}
+.student-page .modal-box{max-width:860px}
+.student-page .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.student-page .form-grid .full{grid-column:1/-1}
+.student-page .form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.student-page .form-error{display:none;margin:0 0 15px;padding:11px 13px;border-radius:11px;background:rgba(255,107,122,.10);border:1px solid rgba(255,107,122,.18);color:#ff9aa5;font-size:12px;font-weight:700}
+.student-page .form-error.show{display:block}
+.student-page .required{color:#ff8b99}
+@media(max-width:700px){.student-page .form-grid{grid-template-columns:1fr}.student-page .form-grid .full{grid-column:auto}.student-page .student-hero{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body class="student-page">
+<header class="top">
+  <div><h1>Student Management</h1><small>AJV • Administrator</small></div>
+  <div class="nav">
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="faculty.html">Faculty</a>
+    <a href="departments.html">Departments</a>
+    <a href="courses.html">Courses</a>
+    <a href="academic-management.html">Academic</a>
+    <a href="assign-students.html">Assign Students</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="student-hero card">
+    <div>
+      <div class="student-kicker">AI Campus Workspace / Student Registry</div>
+      <h2>Student Management</h2>
+      <p>Create, update and manage student accounts without leaving the dashboard.</p>
+    </div>
+    <button onclick="openForm()">＋ Add Student</button>
+  </section>
+
+  <section id="errorBanner" class="error-banner"></section>
+
+  <section class="card">
+    <div class="student-toolbar">
+      <input id="search" placeholder="Search name, email, login ID, register number or department...">
+      <button onclick="loadStudents()">Search</button>
+      <button class="secondary" onclick="clearSearch()">Clear</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Year</th><th>Sem</th><th>Register</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="9" class="empty-row">Loading students...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h2 id="formTitle">Add Student</h2>
+      <p class="form-note">Create a complete student account. Fields marked <span class="required">*</span> are required.</p>
+      <div id="formError" class="form-error"></div>
+
+      <form id="form" novalidate>
+        <div class="form-grid">
+          <div class="field"><label>Login ID <span class="required">*</span></label><input id="loginId" required maxlength="50" autocomplete="off" placeholder="e.g. 26IT001"></div>
+          <div class="field"><label>Full Name <span class="required">*</span></label><input id="fullName" required maxlength="150" placeholder="Student full name"></div>
+          <div class="field"><label>Email <span class="required">*</span></label><input id="email" type="email" required maxlength="150" placeholder="student@ajv.ac.in"></div>
+          <div class="field"><label>Password <span class="required">*</span></label><input id="password" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters"></div>
+
+          <div class="field"><label>Department <span class="required">*</span></label><input id="departmentName" list="departmentOptions" required placeholder="Type department name or code"><datalist id="departmentOptions"></datalist><input id="departmentId" type="hidden"></div>
+          <div class="field"><label>Year <span class="required">*</span></label><input id="yearOfStudy" type="number" min="1" max="6" required placeholder="1"></div>
+          <div class="field"><label>Semester <span class="required">*</span></label><input id="semester" type="number" min="1" max="12" required placeholder="1"></div>
+          <div class="field"><label>Admission Year <span class="required">*</span></label><input id="admissionYear" type="number" min="2000" max="2100" required placeholder="2026"></div>
+
+          <div class="field"><label>Register Number <span class="required">*</span></label><input id="registerNumber" required maxlength="30" placeholder="26IT001"></div>
+          <div class="field"><label>Phone</label><input id="phone" maxlength="20" placeholder="Optional"></div>
+          <div class="field"><label>Date of Birth</label><input id="dateOfBirth" type="date"></div>
+          <div class="field"><label>Gender</label><select id="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="field full"><label>Address</label><textarea id="address" placeholder="Optional address"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="secondary" onclick="closeForm()">Cancel</button>
+          <button id="saveBtn" type="submit">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+const API=location.protocol==="file:"?"http://localhost:5000":location.origin;
+const token=localStorage.getItem("collegeConnectToken");
+const stored=localStorage.getItem("collegeConnectUser");
+let editId=null;
+
+const $=id=>document.getElementById(id);
+function authOk(){
+  if(!token||!stored){location.href="index.html";return false}
+  try{if(JSON.parse(stored).role!=="ADMIN")throw new Error()}catch{localStorage.clear();location.href="index.html";return false}
+  return true
+}
+async function req(path,opt={}){
+  const headers={...(opt.headers||{}),Authorization:"Bearer "+token,"Content-Type":"application/json"};
+  const r=await fetch(API+path,{...opt,headers});
+  const raw=await r.text();
+  let d={};
+  try{d=raw?JSON.parse(raw):{}}catch{d={message:raw||`Server returned ${r.status}`}}
+  if(r.status===401||r.status===403){localStorage.clear();location.href="index.html";return}
+  if(!r.ok)throw new Error(d.message||`Request failed (${r.status})`);
+  return d;
+}
+function showError(message){
+  const e=$("errorBanner");e.textContent=message;e.classList.add("show")
+}
+function clearError(){$("errorBanner").classList.remove("show")}
+function showFormError(message){const e=$("formError");e.textContent=message;e.classList.add("show")}
+function clearFormError(){$("formError").classList.remove("show");$("formError").textContent=""}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+async function loadDepts(selected){
+  try{
+    const d=await req("/api/departments");
+    const active=(d.departments||[]).filter(x=>Boolean(x.is_active));
+    $("departmentOptions").innerHTML=active.map(x=>`<option value="${esc(x.department_name)}">${esc(x.department_code)}</option>`).join("");
+    if(selected){const x=active.find(v=>Number(v.department_id)===Number(selected)); if(x) $("departmentName").value=x.department_name; $("departmentId").value=selected;}
+  }catch(e){showError(e.message)}
+}
+async function resolveDepartment(){
+  const typed=$("departmentName").value.trim();
+  if(!typed) throw new Error("Department is required.");
+  const d=await req("/api/departments"); const list=d.departments||[];
+  const found=list.find(x=>String(x.department_name).toLowerCase()===typed.toLowerCase() || String(x.department_code).toLowerCase()===typed.toLowerCase());
+  if(found){$("departmentId").value=found.department_id; return found.department_id;}
+  const code=(typed.replace(/[^A-Za-z0-9]/g,"").slice(0,12)||"DEPT").toUpperCase();
+  const created=await req("/api/departments",{method:"POST",body:JSON.stringify({departmentCode:code,departmentName:typed,description:`${typed} Department`})});
+  const id=created.department?.department_id || created.department_id; if(!id) throw new Error("Department could not be created."); $("departmentId").value=id; await loadDepts(id); return id;
+}
+
+async function loadStudents(){
+  clearError();
+  const rows=$("rows");
+  rows.innerHTML='<tr><td colspan="9" class="empty-row">Loading students...</td></tr>';
+  try{
+    const q=$("search").value.trim();
+    const d=await req(q?"/api/students/search?q="+encodeURIComponent(q):"/api/students");
+    const students=d.students||[];
+    rows.innerHTML=students.length?students.map(s=>`
+      <tr>
+        <td>${s.student_id}</td>
+        <td><strong>${esc(s.full_name)}</strong><br><small>${esc(s.login_id)}</small></td>
+        <td>${esc(s.email)}</td>
+        <td>${esc(s.department_code||"—")}<br><small>${esc(s.department_name||"—")}</small></td>
+        <td>${s.year_of_study}</td><td>${s.semester}</td><td>${esc(s.register_number)}</td>
+        <td><span class="badge ${s.is_active?'active':'inactive'}">${s.is_active?'Active':'Inactive'}</span></td>
+        <td><div class="actions">
+          <button onclick="editStudent(${s.student_id})">Edit</button>
+          <button class="${s.is_active?'warn':'secondary'}" onclick="statusStudent(${s.student_id},${!s.is_active})">${s.is_active?'Deactivate':'Activate'}</button>
+          <button class="danger" onclick="deleteStudent(${s.student_id})">Delete</button>
+        </div></td>
+      </tr>`).join(""):'<tr><td colspan="9" class="empty-row">No students found.</td></tr>';
+  }catch(e){rows.innerHTML='<tr><td colspan="9" class="empty-row">Unable to load students.</td></tr>';showError(e.message)}
+}
+
+function clearSearch(){$("search").value="";loadStudents()}
+
+async function openForm(){
+  editId=null;clearFormError();$("formTitle").textContent="Add Student";$("form").reset();
+  $("password").required=true;$("loginId").disabled=false;$("saveBtn").disabled=false;$("saveBtn").textContent="Save Student";
+  await loadDepts();$("modal").classList.add("show");$("loginId").focus();
+}
+function closeForm(){$("modal").classList.remove("show");clearFormError()}
+
+async function editStudent(id){
+  clearError();clearFormError();
+  try{
+    const d=await req("/api/students/"+id),s=d.student;editId=id;
+    $("formTitle").textContent="Edit Student";$("saveBtn").textContent="Update Student";
+    await loadDepts(s.department_id);
+    $("loginId").value=s.login_id;$("loginId").disabled=true;
+    $("fullName").value=s.full_name||"";$("email").value=s.email||"";
+    $("password").value="";$("password").required=false;
+    $("yearOfStudy").value=s.year_of_study||"";$("semester").value=s.semester||"";
+    $("admissionYear").value=s.admission_year||"";$("registerNumber").value=s.register_number||"";
+    $("phone").value=s.phone||"";$("dateOfBirth").value=s.date_of_birth?String(s.date_of_birth).slice(0,10):"";
+    $("gender").value=s.gender||"";$("address").value=s.address||"";
+    $("modal").classList.add("show");
+  }catch(e){showError(e.message)}
+}
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();clearFormError();
+  const data={
+    loginId:$("loginId").value.trim(),fullName:$("fullName").value.trim(),email:$("email").value.trim(),
+    password:$("password").value,departmentId:await resolveDepartment(),
+    yearOfStudy:Number($("yearOfStudy").value),semester:Number($("semester").value),
+    admissionYear:Number($("admissionYear").value),registerNumber:$("registerNumber").value.trim(),
+    phone:$("phone").value.trim(),dateOfBirth:$("dateOfBirth").value||null,
+    gender:$("gender").value||null,address:$("address").value.trim()
+  };
+
+  if(!data.fullName||!data.email||!data.departmentId||!data.yearOfStudy||!data.semester||!data.admissionYear||!data.registerNumber){
+    showFormError("Please fill all required fields.");return;
+  }
+  if(!editId&&!data.password){showFormError("Please enter a password.");return}
+  if(!editId&&data.password.length<8){showFormError("Password must contain at least 8 characters.");return}
+
+  const btn=$("saveBtn");btn.disabled=true;btn.textContent=editId?"Updating...":"Creating...";
+  try{
+    if(editId){
+      delete data.loginId;delete data.password;
+      await req("/api/students/"+editId,{method:"PUT",body:JSON.stringify(data)});
+    }else{
+      await req("/api/students",{method:"POST",body:JSON.stringify(data)});
+    }
+    closeForm();await loadStudents();alert(editId?"Student updated successfully.":"Student added successfully.");
+  }catch(e){showFormError(e.message)}
+  finally{btn.disabled=false;btn.textContent=editId?"Update Student":"Save Student"}
+});
+
+async function statusStudent(id,active){
+  try{await req("/api/students/"+id+"/status",{method:"PATCH",body:JSON.stringify({isActive:active})});await loadStudents()}
+  catch(e){showError(e.message)}
+}
+async function deleteStudent(id){
+  if(!confirm("Delete this student account and profile?"))return;
+  try{await req("/api/students/"+id,{method:"DELETE"});await loadStudents()}
+  catch(e){showError(e.message)}
+}
+$("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeForm()});
+$("search").addEventListener("keydown",e=>{if(e.key==="Enter")loadStudents()});
+if(authOk()){loadDepts();loadStudents()}
+</script>
+</body>
+</html>

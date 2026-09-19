@@ -1,0 +1,9 @@
+AJV CollegeConnect — Bright Campus UI
+
+This rebuild retains the existing application structure and data model while fixing backend and frontend defects.
+- frontend/assets/professional-ui.css contains the shared bright design system.
+- frontend/assets/srit-theme.css is kept as a compatibility stylesheet.
+- The generic campus-hero.png asset is used for the login and hero surfaces.
+- The backend continues to use Express.js, MySQL, JWT, and the original route modules.
+
+Theme: white/light surfaces, blue primary actions, soft cyan accents, restrained violet accents, subtle glass effects, and responsive layouts.

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>AJV CollegeConnect • Faculty</title>
+  <link rel="stylesheet" href="assets/srit-theme.css"><link rel="stylesheet" href="assets/professional-ui.css">
+</head>
+<body>
+  <header class="top">
+    <div><h1>Faculty Management</h1><small>AJV · Administrator</small></div>
+    <nav class="nav"><a href="admin-dashboard.html">Dashboard</a><a href="students.html">Students</a><a href="departments.html">Departments</a><a href="courses.html">Courses</a><a href="academic-management.html">Academic</a><a href="assign-students.html">Assign Students</a></nav>
+  </header>
+  <main class="wrap">
+    <section id="errorBanner" class="error-banner"></section>
+    <section class="card">
+      <div class="toolbar"><input id="search" placeholder="Search faculty name, employee number or login ID"><button onclick="loadFaculty()">Search</button><button class="secondary" onclick="openForm()">Add Faculty</button></div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Employee No.</th><th>Email</th><th>Department</th><th>Designation</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td colspan="8" class="empty-row">Loading faculty…</td></tr></tbody></table></div>
+    </section>
+    <div class="modal" id="modal"><div class="modal-box"><h2 id="formTitle">Add Faculty</h2><p class="form-note">Create or update a faculty account connected to the college database.</p>
+      <form id="form"><div class="grid">
+        <div class="field"><label>Login ID *</label><input id="loginId" required></div><div class="field"><label>Employee Number *</label><input id="employeeNumber" required></div>
+        <div class="field"><label>Full Name *</label><input id="fullName" required></div><div class="field"><label>Email *</label><input id="email" type="email" required></div>
+        <div class="field"><label>Department *</label><input id="departmentName" list="departmentOptions" required placeholder="Type department name or code"><datalist id="departmentOptions"></datalist><input id="departmentId" type="hidden"></div><div class="field"><label>Designation *</label><input id="designation" required></div>
+        <div class="field"><label>Qualification</label><input id="qualification"></div><div class="field"><label>Phone</label><input id="phone"></div>
+        <div class="field"><label>Joining Date</label><input id="joiningDate" type="date"></div><div class="field"><label>Password <span id="passwordHint">*</span></label><input id="password" type="password"></div>
+      </div><div class="actions"><button id="saveBtn">Save Faculty</button><button type="button" class="secondary" onclick="closeForm()">Cancel</button></div></form>
+    </div></div>
+  </main>
+  <script>
+    const API=location.protocol==="file:"?"http://localhost:5000":location.origin;
+    const token=localStorage.getItem("collegeConnectToken"),stored=localStorage.getItem("collegeConnectUser");
+    let user,editId=null;
+    try{user=stored?JSON.parse(stored):null}catch{user=null}
+    if(!token||!user||user.role!=="ADMIN"){localStorage.clear();location.href="index.html"}
+    const $=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+    function showError(message){$("errorBanner").textContent=message;$("errorBanner").classList.add("show")}
+    async function req(path,opt={}){
+      const r=await fetch(API+path,{...opt,headers:{...(opt.headers||{}),Authorization:"Bearer "+token,"Content-Type":"application/json"}});
+      const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch{d={message:raw||`Server returned ${r.status}`}}
+      if(r.status===401||r.status===403){localStorage.clear();location.href="index.html";return}
+      if(!r.ok)throw new Error(d.message||"Request failed");return d;
+    }
+    async function loadDepartments(selected){
+      try{const d=await req("/api/departments");const list=(d.departments||[]).filter(x=>Boolean(x.is_active));$("departmentOptions").innerHTML=list.map(x=>`<option value="${esc(x.department_name)}">${esc(x.department_code)}</option>`).join("");if(selected){const x=list.find(v=>Number(v.department_id)===Number(selected));if(x) $("departmentName").value=x.department_name;$("departmentId").value=selected;}}catch(e){showError(e.message)}}
+    async function resolveDepartment(){const typed=$("departmentName").value.trim();if(!typed)throw new Error("Department is required.");const d=await req("/api/departments"),list=d.departments||[];const found=list.find(x=>String(x.department_name).toLowerCase()===typed.toLowerCase()||String(x.department_code).toLowerCase()===typed.toLowerCase());if(found){$("departmentId").value=found.department_id;return found.department_id;}const code=(typed.replace(/[^A-Za-z0-9]/g,"").slice(0,12)||"DEPT").toUpperCase();const created=await req("/api/departments",{method:"POST",body:JSON.stringify({departmentCode:code,departmentName:typed,description:`${typed} Department`})});const id=created.department?.department_id||created.department_id;if(!id)throw new Error("Department could not be created.");$("departmentId").value=id;await loadDepartments(id);return id;}
+
+    async function loadFaculty(){
+      $("errorBanner").classList.remove("show");$("rows").innerHTML='<tr><td colspan="8" class="empty-row">Loading faculty…</td></tr>';
+      try{const q=$("search").value.trim(),d=await req(q?"/api/faculty/search?q="+encodeURIComponent(q):"/api/faculty"),items=d.faculty||[];
+        $("rows").innerHTML=items.length?items.map(f=>`<tr><td>${f.faculty_id}</td><td><strong>${esc(f.full_name)}</strong><br><small>${esc(f.login_id)}</small></td><td>${esc(f.employee_number)}</td><td>${esc(f.email)}</td><td>${esc(f.department_name||"—")}</td><td>${esc(f.designation||"—")}</td><td><span class="badge ${f.is_active?"active":"inactive"}">${f.is_active?"Active":"Inactive"}</span></td><td><div class="actions"><button onclick="editFaculty(${f.faculty_id})">Edit</button><button class="${f.is_active?"warn":"secondary"}" onclick="statusFaculty(${f.faculty_id},${!f.is_active})">${f.is_active?"Deactivate":"Activate"}</button><button class="danger" onclick="deleteFaculty(${f.faculty_id})">Delete</button></div></td></tr>`).join(""):'<tr><td colspan="8" class="empty-row">No faculty found.</td></tr>';
+      }catch(e){showError(e.message);$("rows").innerHTML='<tr><td colspan="8" class="empty-row">Unable to load faculty.</td></tr>'}
+    }
+    function openForm(){editId=null;$("formTitle").textContent="Add Faculty";$("form").reset();$("loginId").disabled=false;$("employeeNumber").disabled=false;$("password").required=true;$("passwordHint").textContent="*";$("saveBtn").textContent="Save Faculty";loadDepartments();$("modal").classList.add("show")}
+    function closeForm(){$("modal").classList.remove("show")}
+    async function editFaculty(id){try{const d=await req("/api/faculty/"+id),f=d.faculty;editId=id;$("formTitle").textContent="Edit Faculty";$("loginId").value=f.login_id;$("loginId").disabled=true;$("employeeNumber").value=f.employee_number;$("employeeNumber").disabled=true;$("fullName").value=f.full_name;$("email").value=f.email;await loadDepartments(f.department_id);$("designation").value=f.designation||"";$("qualification").value=f.qualification||"";$("phone").value=f.phone||"";$("joiningDate").value=f.joining_date?String(f.joining_date).slice(0,10):"";$("password").value="";$("password").required=false;$("passwordHint").textContent="";$("saveBtn").textContent="Update Faculty";$("modal").classList.add("show")}catch(e){showError(e.message)}}
+    $("form").addEventListener("submit",async e=>{e.preventDefault();const data={loginId:$("loginId").value.trim(),employeeNumber:$("employeeNumber").value.trim(),fullName:$("fullName").value.trim(),email:$("email").value.trim(),departmentId:await resolveDepartment(),designation:$("designation").value.trim(),qualification:$("qualification").value.trim(),phone:$("phone").value.trim(),joiningDate:$("joiningDate").value||null,password:$("password").value};$("saveBtn").disabled=true;try{if(editId){delete data.password;await req("/api/faculty/"+editId,{method:"PUT",body:JSON.stringify(data)})}else await req("/api/faculty",{method:"POST",body:JSON.stringify(data)});closeForm();await loadFaculty()}catch(e){showError(e.message)}finally{$("saveBtn").disabled=false}});
+    async function statusFaculty(id,isActive){try{await req("/api/faculty/"+id+"/status",{method:"PATCH",body:JSON.stringify({isActive})});await loadFaculty()}catch(e){showError(e.message)}}
+    async function deleteFaculty(id){if(!confirm("Delete this faculty account and profile?"))return;try{await req("/api/faculty/"+id,{method:"DELETE"});await loadFaculty()}catch(e){showError(e.message)}}
+    $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeForm()});$("search").addEventListener("keydown",e=>{if(e.key==="Enter")loadFaculty()});
+    loadDepartments().catch(e=>showError(e.message));loadFaculty();
+  </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AJV CollegeConnect • Academic</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+.top{background:#183b70;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top h1{margin:0;font-size:21px}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;background:#ffffff18}
+.wrap{max-width:1250px;margin:auto;padding:22px}.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 4px 16px #00000012}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.field label{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
+input,select{width:100%;padding:10px;border:1px solid #ccd5e2;border-radius:7px;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#2463c5;color:#fff;font-weight:600}
+button.danger{background:#c0392b}button.secondary{background:#64748b}.msg{display:none;margin:10px 0;padding:9px;border-radius:7px}.msg.show{display:block}.ok{background:#dcfce7;color:#166534}.err{background:#fee2e2;color:#991b1b}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e5e9f0;text-align:left;white-space:nowrap}th{background:#eef3f9}
+@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}.top{flex-direction:column;align-items:flex-start}}
+</style><link rel="stylesheet" href="assets/srit-theme.css">
+<link rel="stylesheet" href="assets/professional-ui.css"></head>
+<body>
+<header class="top"><img class="brand-logo" src="assets/srit-logo.png" alt="AJV" style="display:none">
+<div><h1>AJV • Sri Ramakrishna Institute of Technology — Academic Management</h1><div>Faculty assignments & student course enrollment</div></div>
+<nav class="nav"><a href="admin-dashboard.html">Dashboard</a><a href="students.html">Students</a><a href="faculty.html">Faculty</a><a href="courses.html">Courses</a><a href="departments.html">Departments</a><a href="assign-students.html">Assign Students</a></nav>
+</header>
+<main class="wrap">
+<section class="card">
+<h2>Assign Course to Faculty</h2>
+<div id="assignMsg" class="msg"></div>
+<div class="grid">
+<div class="field"><label>Faculty</label><select id="facultyId"></select></div>
+<div class="field"><label>Course</label><select id="courseId"></select></div>
+<div class="field"><label>Academic Year</label><input id="assignYear" value="2026-27"></div>
+<div class="field"><label>&nbsp;</label><button onclick="assignCourse()">Assign Course</button></div>
+</div>
+<div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Faculty</th><th>Employee No.</th><th>Course</th><th>Academic Year</th><th>Action</th></tr></thead><tbody id="assignmentRows"></tbody></table></div>
+</section>
+
+<section class="card">
+<h2>Enroll Student in Course</h2>
+<div id="enrollMsg" class="msg"></div>
+<div class="grid">
+<div class="field"><label>Student</label><select id="studentId"></select></div>
+<div class="field"><label>Course</label><select id="enrollCourseId"></select></div>
+<div class="field"><label>Semester</label><input id="enrollSemester" type="number" min="1" max="8" value="1"></div>
+<div class="field"><label>Academic Year</label><input id="enrollYear" value="2026-27"></div>
+</div>
+<div class="actions"><button onclick="enrollStudent()">Enroll Student</button></div>
+<div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Register No.</th><th>Student</th><th>Course</th><th>Semester</th><th>Academic Year</th><th>Action</th></tr></thead><tbody id="enrollmentRows"></tbody></table></div>
+</section>
+</main>
+<script>
+const API=(location.protocol === "file:" ? "http://localhost:5000" : location.origin),token=localStorage.getItem("collegeConnectToken"),u=localStorage.getItem("collegeConnectUser");
+if(!token||!u){location.href="index.html";}
+let currentUser;try{currentUser=u?JSON.parse(u):null}catch{currentUser=null}
+if(!currentUser||currentUser.role!=="ADMIN"){localStorage.clear();location.href="index.html";}
+
+async function api(path,opt={}){
+ opt.headers={...(opt.headers||{}),Authorization:"Bearer "+token,"Content-Type":"application/json"};
+ const r=await fetch(API+path,opt);const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch(_){d={message:raw||`Server returned ${r.status} without JSON`}};
+ if(r.status===401||r.status===403){localStorage.clear();location.href="index.html";}
+ if(!r.ok||d.success===false)throw Error(d.message||"Request failed");return d;
+}
+function show(id,msg,ok=false){const e=document.getElementById(id);e.textContent=msg;e.className="msg show "+(ok?"ok":"err");setTimeout(()=>e.className="msg",3500);}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+
+async function loadOptions(){
+ const d=await api("/api/academic/options");
+ facultyId.innerHTML='<option value="">Select Faculty</option>'+d.faculty.map(x=>`<option value="${x.faculty_id}">${esc(x.full_name)} (${esc(x.employee_number)})</option>`).join("");
+ studentId.innerHTML='<option value="">Select Student</option>'+d.students.map(x=>`<option value="${x.student_id}">${esc(x.register_number)} - ${esc(x.full_name)}</option>`).join("");
+ const opts='<option value="">Select Course</option>'+d.courses.map(x=>`<option value="${x.course_id}">${esc(x.course_code)} - ${esc(x.course_name)}</option>`).join("");
+ courseId.innerHTML=opts;enrollCourseId.innerHTML=opts;
+}
+async function loadAssignments(){
+ const d=await api("/api/academic/assignments");
+ assignmentRows.innerHTML=d.assignments.map(x=>`<tr><td>${esc(x.full_name)}</td><td>${esc(x.employee_number)}</td><td>${esc(x.course_code)} - ${esc(x.course_name)}</td><td>${esc(x.academic_year)}</td><td><button class="danger" onclick="removeAssignment(${x.faculty_course_id})">Remove</button></td></tr>`).join("");
+}
+async function assignCourse(){
+ try{
+  await api("/api/academic/assignments",{method:"POST",body:JSON.stringify({facultyId:Number(facultyId.value),courseId:Number(courseId.value),academicYear:assignYear.value.trim()})});
+  show("assignMsg","Course assigned successfully.",true);await loadAssignments();
+ }catch(e){show("assignMsg",e.message)}
+}
+async function removeAssignment(id){
+ if(!confirm("Remove this faculty course assignment?"))return;
+ try{await api("/api/academic/assignments/"+id,{method:"DELETE"});await loadAssignments();show("assignMsg","Assignment removed.",true)}catch(e){show("assignMsg",e.message)}
+}
+async function loadEnrollments(){
+ const d=await api("/api/academic/enrollments");
+ enrollmentRows.innerHTML=d.enrollments.map(x=>`<tr><td>${esc(x.register_number)}</td><td>${esc(x.full_name)}</td><td>${esc(x.course_code)} - ${esc(x.course_name)}</td><td>${x.semester}</td><td>${esc(x.academic_year)}</td><td><button class="danger" onclick="removeEnrollment(${x.student_course_id})">Remove</button></td></tr>`).join("");
+}
+async function enrollStudent(){
+ try{
+  await api("/api/academic/enrollments",{method:"POST",body:JSON.stringify({
+   studentId:Number(studentId.value),courseId:Number(enrollCourseId.value),
+   semester:Number(enrollSemester.value),academicYear:enrollYear.value.trim()
+  })});
+  show("enrollMsg","Student enrolled successfully.",true);await loadEnrollments();
+ }catch(e){show("enrollMsg",e.message)}
+}
+async function removeEnrollment(id){
+ if(!confirm("Remove this student course enrollment?"))return;
+ try{await api("/api/academic/enrollments/"+id,{method:"DELETE"});await loadEnrollments();show("enrollMsg","Enrollment removed.",true)}catch(e){show("enrollMsg",e.message)}
+}
+Promise.all([loadOptions(),loadAssignments(),loadEnrollments()]).catch(e=>show("assignMsg",e.message));
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+Student Add + UI rebuild
+
+Fixed:
+- Student POST now validates active department, duplicate login ID, duplicate email and duplicate register number.
+- Database duplicate errors return useful 409 messages instead of a generic failure.
+- Student form now shows server errors inside the modal instead of hiding them in a generic alert.
+- Department search is included in student search.
+- Add/Edit student form was polished.
+
+Changed only:
+- backend/routes/studentRoutes.js
+- frontend/students.html
+- frontend/assets/professional-ui.css
+
+All other project files were preserved from the uploaded ZIP.

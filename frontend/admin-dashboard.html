@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>AJV CollegeConnect • Dashboard</title>
+  <style>
+    .dashboard-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}
+    .dashboard-grid .card{padding:22px}
+    .dashboard-grid h2{margin-top:0}
+    .list{display:grid;gap:10px}
+    .list-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #edf1f6}
+    .list-item:last-child{border-bottom:0}
+    .list-item strong{display:block;color:#1d3c62;font-size:13px}
+    .list-item small{display:block;color:#7a8da4;margin-top:3px}
+    .list-item .value{font-weight:850;color:#1769e0;white-space:nowrap}
+    @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="assets/srit-theme.css">
+  <link rel="stylesheet" href="assets/professional-ui.css">
+</head>
+<body>
+  <header class="top">
+    <div><h1>AJV CollegeConnect</h1><small>Administrator workspace</small></div>
+    <div class="actions">
+      <nav class="nav">
+        <a href="admin-dashboard.html">Dashboard</a><a href="students.html">Students</a>
+        <a href="faculty.html">Faculty</a><a href="departments.html">Departments</a>
+        <a href="courses.html">Courses</a><a href="academic-management.html">Academic</a><a href="assign-students.html">Assign Students</a>
+      </nav>
+      <button class="secondary" onclick="logout()">Logout</button>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero-campus">
+      <div class="hero-copy">
+        <h2>Welcome to AJV CollegeConnect</h2>
+        <p>Smart College Management for a Connected Campus<br><span id="adminName">Administrator</span> · Sri Ramakrishna Institute of Technology</p>
+      </div>
+    </section>
+    <section class="quick">
+      <div class="card"><div>Total Students</div><div class="stat" id="studentCount">—</div><a href="students.html">Manage students →</a></div>
+      <div class="card"><div>Total Faculty</div><div class="stat" id="facultyCount">—</div><a href="faculty.html">Manage faculty →</a></div>
+      <div class="card"><div>Total Departments</div><div class="stat" id="deptCount">—</div><a href="departments.html">View departments →</a></div>
+      <div class="card"><div>Total Courses</div><div class="stat" id="courseCount">—</div><a href="courses.html">Manage courses →</a></div>
+      <div class="card"><div>Academic Records</div><div class="stat" id="recordCount">—</div><a href="academic-management.html">Open academic tools →</a></div>
+    </section>
+    <section class="dashboard-grid">
+      <div class="card"><h2>Department overview</h2><div id="departmentOverview" class="list"><div class="empty">Loading department data…</div></div></div>
+      <div class="card"><h2>Recent students</h2><div id="recentStudents" class="list"><div class="empty">Loading students…</div></div></div>
+      <div class="card"><h2>Recent academic activity</h2><div id="recentActivity" class="list"><div class="empty">No recent records yet.</div></div></div>
+      <div class="card"><h2>Quick actions</h2><div class="actions">
+        <a href="students.html"><button>Add student</button></a>
+        <a href="faculty.html"><button>Manage faculty</button></a>
+        <a href="departments.html"><button>Manage departments</button></a>
+        <a href="courses.html"><button>Manage courses</button></a>
+        <a href="assign-students.html"><button>Assign students</button></a>
+      </div></div>
+    </section>
+  </main>
+  <script>
+    const API=location.protocol==="file:"?"http://localhost:5000":location.origin;
+    const token=localStorage.getItem("collegeConnectToken");
+    const stored=localStorage.getItem("collegeConnectUser");
+    let user;
+    try{user=stored?JSON.parse(stored):null}catch{user=null}
+    if(!token||!user||user.role!=="ADMIN"){localStorage.clear();location.href="index.html"}
+    const $=id=>document.getElementById(id);
+    const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+    async function loadSummary(){
+      try{
+        const r=await fetch(API+"/api/dashboard/summary",{headers:{Authorization:"Bearer "+token}});
+        const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch{d={message:raw}};
+        if(!r.ok||!d.success)throw new Error(d.message||"Unable to load dashboard.");
+        $("studentCount").textContent=d.counts.students;$("facultyCount").textContent=d.counts.faculty;
+        $("deptCount").textContent=d.counts.departments;$("courseCount").textContent=d.counts.courses;
+        $("recordCount").textContent=d.counts.academic_records;
+        $("departmentOverview").innerHTML=d.departmentOverview.length?d.departmentOverview.map(x=>`<div class="list-item"><div><strong>${esc(x.department_code)} · ${esc(x.department_name)}</strong><small>${x.faculty_count} faculty · ${x.student_count} students</small></div><span class="value">${x.student_count}</span></div>`).join(""):'<div class="empty">No departments found.</div>';
+        $("recentStudents").innerHTML=d.recentStudents.length?d.recentStudents.map(x=>`<div class="list-item"><div><strong>${esc(x.full_name)}</strong><small>${esc(x.register_number)} · ${esc(x.department_code||"—")}</small></div><span class="value">Y${x.year_of_study} / S${x.semester}</span></div>`).join(""):'<div class="empty">No students found.</div>';
+        $("recentActivity").innerHTML=d.recentActivity.length?d.recentActivity.map(x=>`<div class="list-item"><div><strong>${esc(x.student_name)}</strong><small>${esc(x.course_code)} · ${esc(x.result_status)}</small></div><span class="value">Result</span></div>`).join(""):'<div class="empty">No academic records yet.</div>';
+      }catch(e){
+        if(e.message.includes("token")||e.message.includes("access")){localStorage.clear();location.href="index.html";return}
+        $("departmentOverview").innerHTML=`<div class="empty">${esc(e.message)}</div>`;
+      }
+    }
+    $("adminName").textContent=user?.name||"Administrator";
+    function logout(){localStorage.removeItem("collegeConnectToken");localStorage.removeItem("collegeConnectUser");location.href="index.html"}
+    loadSummary();
+  </script>
+</body>
+</html>

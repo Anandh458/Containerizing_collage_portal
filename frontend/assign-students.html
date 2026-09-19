@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AJV CollegeConnect • Assign Students</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+.top{background:#183b70;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top h1{margin:0;font-size:21px}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;background:#ffffff18}
+.wrap{max-width:1250px;margin:auto;padding:22px}.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 4px 16px #00000012}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.field label{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
+input,select{width:100%;padding:10px;border:1px solid #ccd5e2;border-radius:7px;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#2463c5;color:#fff;font-weight:600}
+button.danger{background:#c0392b}button.secondary{background:#64748b}.msg{display:none;margin:10px 0;padding:9px;border-radius:7px}.msg.show{display:block}.ok{background:#dcfce7;color:#166534}.err{background:#fee2e2;color:#991b1b}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e5e9f0;text-align:left;white-space:nowrap}th{background:#eef3f9}
+/* Page specific */
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.page-head h2{margin:0;font-size:24px;color:#17395f}.page-head p{margin:6px 0 0;color:#6a7f99;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid #e2eaf4;border-radius:16px;padding:16px 18px;box-shadow:0 10px 28px rgba(36,72,123,.07)}
+.kpi span{display:block;color:#70839b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+.kpi strong{display:block;font-size:26px;color:#183a67;margin-top:6px}
+.assign-card h3{margin:0 0 4px;font-size:18px;color:#17395f}.assign-card .sub{margin:0 0 16px;color:#6a7f99;font-size:13px}
+.assign-grid{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:14px;align-items:end}
+.assign-grid .field select{cursor:pointer}
+.help{display:block;margin-top:5px;color:#8ba0b7;font-size:11px}
+.chip{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#eaf2ff;color:#1d5fc9;border:1px solid #d3e3fb}
+.toolbar-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+.toolbar-row input{max-width:340px}
+.toast{position:fixed;right:20px;bottom:20px;z-index:3000;min-width:260px;max-width:90vw;padding:13px 16px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 18px 45px rgba(17,42,74,.22);opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;pointer-events:none}
+.toast.show{opacity:1;transform:none}.toast.ok{background:#138a63;color:#fff}.toast.err{background:#c83b4e;color:#fff}
+.student-cell strong{display:block;color:#1d3c62}.student-cell small{color:#7a8da4}
+@media(max-width:1000px){.assign-grid{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){.assign-grid,.kpis{grid-template-columns:1fr}.top{flex-direction:column;align-items:flex-start}.assign-grid button{width:100%}}
+</style><link rel="stylesheet" href="assets/srit-theme.css">
+<link rel="stylesheet" href="assets/professional-ui.css"></head>
+<body>
+<header class="top"><img class="brand-logo" src="assets/srit-logo.png" alt="AJV" style="display:none">
+<div><h1>AJV • Sri Ramakrishna Institute of Technology — Assign Students</h1><div>Map students to faculty mentors for each course</div></div>
+<nav class="nav"><a href="admin-dashboard.html">Dashboard</a><a href="students.html">Students</a><a href="faculty.html">Faculty</a><a href="courses.html">Courses</a><a href="departments.html">Departments</a><a href="academic-management.html">Academic</a><a href="#" onclick="logout();return false;">Logout</a></nav>
+</header>
+<main class="wrap">
+<div class="page-head">
+  <div><h2>Assign Student to Faculty</h2><p>Assigned students automatically appear in that faculty member's <b>My Students</b> list.</p></div>
+  <span class="chip" id="lastUpdated">Live data from CollegeConnect database</span>
+</div>
+
+<section class="kpis">
+  <div class="kpi"><span>Total Assignments</span><strong id="kpiAssignments">—</strong></div>
+  <div class="kpi"><span>Students Assigned</span><strong id="kpiStudents">—</strong></div>
+  <div class="kpi"><span>Faculty Involved</span><strong id="kpiFaculty">—</strong></div>
+</section>
+
+<section class="card assign-card">
+<h3>New Assignment</h3><p class="sub">Select a student, the faculty member responsible for them and the course. Duplicate assignments are blocked automatically.</p>
+<div id="assignMsg" class="msg" role="status"></div>
+<form id="assignForm" class="assign-grid" novalidate>
+<div class="field"><label for="studentId">Student</label><select id="studentId" required><option value="">Loading students…</option></select><small class="help">Register number · Name</small></div>
+<div class="field"><label for="facultyId">Faculty</label><select id="facultyId" required><option value="">Loading faculty…</option></select><small class="help">Faculty name · Department</small></div>
+<div class="field"><label for="courseId">Course</label><select id="courseId" required><option value="">Loading courses…</option></select><small class="help">Course code · Course name</small></div>
+<div class="field"><button type="submit" id="assignBtn">Assign Student</button></div>
+</form>
+</section>
+
+<section class="card">
+<div class="toolbar-row"><h3 style="margin:0;color:#17395f">Current Assignments</h3><input id="search" placeholder="Search by student, faculty, course or department…" oninput="renderTable()"></div>
+<div class="table-wrap"><table><thead><tr><th>Student</th><th>Faculty</th><th>Course</th><th>Department</th><th>Assigned On</th><th>Action</th></tr></thead><tbody id="assignmentRows"><tr><td colspan="6" class="empty">Loading assignments…</td></tr></tbody></table></div>
+</section>
+</main>
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<script>
+const API=(location.protocol === "file:" ? "http://localhost:5000" : location.origin),token=localStorage.getItem("collegeConnectToken"),u=localStorage.getItem("collegeConnectUser");
+if(!token||!u){location.href="index.html";}
+let currentUser;try{currentUser=u?JSON.parse(u):null}catch{currentUser=null}
+if(!currentUser||currentUser.role!=="ADMIN"){localStorage.clear();location.href="index.html";}
+
+let assignments=[];
+const $=id=>document.getElementById(id);
+function logout(){localStorage.removeItem("collegeConnectToken");localStorage.removeItem("collegeConnectUser");location.href="index.html";}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+async function api(path,opt={}){
+ opt.headers={...(opt.headers||{}),Authorization:"Bearer "+token,"Content-Type":"application/json"};
+ const r=await fetch(API+path,opt);const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch(_){d={message:raw||`Server returned ${r.status} without JSON`}};
+ if(r.status===401){localStorage.clear();location.href="index.html";}
+ if(!r.ok||d.success===false)throw Error(d.message||"Request failed");return d;
+}
+let toastTimer;
+function toast(text,ok=true){const t=$("toast");t.textContent=text;t.className="toast show "+(ok?"ok":"err");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className="toast",3200);}
+function show(id,msg,ok=false){const e=$(id);e.textContent=msg;e.className="msg show "+(ok?"ok":"err");setTimeout(()=>e.className="msg",4000);toast(msg,ok);}
+function fmtDate(v){if(!v)return "—";const d=new Date(String(v).replace(" ","T"));return isNaN(d)?String(v).slice(0,10):d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}
+
+async function loadOptions(){
+ const d=await api("/api/student-assignments/options");
+ $("studentId").innerHTML='<option value="">Select Student</option>'+d.students.map(x=>`<option value="${x.student_id}">${esc(x.register_number)} — ${esc(x.full_name)}${x.department_code?" ("+esc(x.department_code)+")":""}</option>`).join("");
+ $("facultyId").innerHTML='<option value="">Select Faculty</option>'+d.faculty.map(x=>`<option value="${x.faculty_id}">${esc(x.full_name)}${x.department_code?" · "+esc(x.department_code):""}</option>`).join("");
+ $("courseId").innerHTML='<option value="">Select Course</option>'+d.courses.map(x=>`<option value="${x.course_id}">${esc(x.course_code)} — ${esc(x.course_name)}</option>`).join("");
+}
+async function loadAssignments(){
+ const d=await api("/api/student-assignments");assignments=d.assignments||[];
+ $("kpiAssignments").textContent=assignments.length;
+ $("kpiStudents").textContent=new Set(assignments.map(a=>a.student_id)).size;
+ $("kpiFaculty").textContent=new Set(assignments.map(a=>a.faculty_id)).size;
+ renderTable();
+}
+function renderTable(){
+ const q=($("search").value||"").toLowerCase();
+ const rows=assignments.filter(a=>!q||[a.register_number,a.student_name,a.faculty_name,a.course_code,a.course_name,a.department_code,a.department_name].join(" ").toLowerCase().includes(q));
+ $("assignmentRows").innerHTML=rows.length?rows.map(a=>`<tr>
+<td class="student-cell"><strong>${esc(a.register_number)}</strong><small>${esc(a.student_name)}</small></td>
+<td>${esc(a.faculty_name)}</td>
+<td>${esc(a.course_code)} — ${esc(a.course_name)}</td>
+<td>${esc(a.department_code||a.department_name||"—")}</td>
+<td>${fmtDate(a.created_at)}</td>
+<td><button class="danger" onclick="removeAssignment(${a.assignment_id})">Remove</button></td></tr>`).join("")
+ :`<tr><td colspan="6" class="empty">${q?"No assignments match your search.":"No students have been assigned yet."}</td></tr>`;
+}
+$("assignForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const studentId=Number($("studentId").value),facultyId=Number($("facultyId").value),courseId=Number($("courseId").value);
+ if(!studentId){show("assignMsg","Please select a student.");$("studentId").focus();return;}
+ if(!facultyId){show("assignMsg","Please select a faculty member.");$("facultyId").focus();return;}
+ if(!courseId){show("assignMsg","Please select a course.");$("courseId").focus();return;}
+ if(assignments.some(a=>a.student_id===studentId&&a.faculty_id===facultyId&&a.course_id===courseId)){show("assignMsg","This student is already assigned to this faculty for the selected course.");return;}
+ const btn=$("assignBtn");btn.disabled=true;btn.textContent="Assigning…";
+ try{
+  const d=await api("/api/student-assignments",{method:"POST",body:JSON.stringify({studentId,facultyId,courseId})});
+  show("assignMsg",d.message||"Student assigned successfully.",true);
+  $("studentId").value="";$("courseId").value="";
+  await loadAssignments();
+ }catch(err){show("assignMsg",err.message)}
+ finally{btn.disabled=false;btn.textContent="Assign Student";}
+});
+async function removeAssignment(id){
+ const a=assignments.find(x=>x.assignment_id===id);
+ if(!confirm(`Remove ${a?a.register_number+" from "+a.faculty_name:"this assignment"}? The student, faculty and course records will not be deleted.`))return;
+ try{const d=await api("/api/student-assignments/"+id,{method:"DELETE"});await loadAssignments();show("assignMsg",d.message||"Assignment removed successfully.",true)}catch(e){show("assignMsg",e.message)}
+}
+Promise.all([loadOptions(),loadAssignments()]).catch(e=>show("assignMsg",e.message));
+</script>
+</body>
+</html>

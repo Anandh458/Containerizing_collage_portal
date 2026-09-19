@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>AJV CollegeConnect • Sign In</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}.top{background:#183b70;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}.top h1{margin:0;font-size:22px}.wrap{padding:24px;max-width:1200px;margin:auto}.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 4px 16px #00000012}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-weight:600;font-size:14px}input,select,textarea{padding:10px;border:1px solid #ccd5e2;border-radius:7px;font-size:14px;width:100%}textarea{min-height:80px;resize:vertical}button{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#2463c5;color:#fff;font-weight:600}button.secondary{background:#64748b}button.danger{background:#c0392b}button.warn{background:#b7791f}.actions{display:flex;gap:7px;flex-wrap:wrap}.toolbar{display:flex;gap:10px;margin-bottom:15px}.toolbar input{max-width:360px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid #e5e9f0;text-align:left;white-space:nowrap}th{background:#eef3f9}.badge{padding:5px 9px;border-radius:20px;font-size:12px}.active{background:#dcfce7;color:#166534}.inactive{background:#fee2e2;color:#991b1b}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;padding:8px 10px;border-radius:6px;background:#ffffff18}.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.modal-box{background:#fff;border-radius:12px;padding:22px;width:min(760px,100%);max-height:90vh;overflow:auto}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#183b70,#4f7cc3)}.login-box{background:#fff;padding:30px;border-radius:14px;width:min(430px,92%)}.login-box h1{margin-top:0}.login-box .field{margin:12px 0}.msg{min-height:20px;color:#b91c1c}.stat{font-size:28px;font-weight:700}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:800px){.grid,.quick{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid,.quick{grid-template-columns:1fr}.toolbar{flex-direction:column}}
+</style><link rel="stylesheet" href="assets/srit-theme.css"><link rel="stylesheet" href="assets/professional-ui.css"></head>
+<body><main class="login"><section class="login-box">
+<h1>Sri Ramakrishna Institute of Technology</h1><p>CollegeConnect • Digital Campus Management System</p>
+<form id="loginForm">
+<div class="field"><label>Role</label><select id="role"><option value="ADMIN">Admin</option><option value="FACULTY">Faculty</option><option value="STUDENT">Student</option></select></div>
+<div class="field"><label>Login ID</label><input id="loginId" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<div id="msg" class="msg"></div><button type="submit">Sign in to CollegeConnect</button>
+</form></section></main><script>const API=(location.protocol === "file:" ? "http://localhost:5000" : location.origin);
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault(); const msg=document.getElementById("msg"); msg.textContent="";
+ try{
+  const r=await fetch(API+"/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({loginId:loginId.value.trim(),password:password.value})});
+  const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch(_){d={message:raw||`Server returned ${r.status} without JSON`}}; if(!r.ok||!d.success) throw new Error(d.message||"Login failed");
+  const selected=role.value; if(d.user.role!==selected) throw new Error("Selected role does not match this account.");
+  localStorage.setItem("collegeConnectToken",d.token);localStorage.setItem("collegeConnectUser",JSON.stringify(d.user));
+  if(d.user.role==="ADMIN") location.href="admin-dashboard.html";
+  else if(d.user.role==="STUDENT") location.href="student-dashboard.html";
+  else if(d.user.role==="FACULTY") location.href="faculty-dashboard.html";
+ }catch(e){msg.textContent=e.message}
+});</script></body></html>

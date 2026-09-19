@@ -1,0 +1,52 @@
+AJV COLLEGE MANAGEMENT SYSTEM - REBUILT
+==========================================
+
+WHAT WAS FIXED
+---------------
+1. Student > Add Student now loads departments correctly.
+2. The old department route file was accidentally serving FACULTY data. It has been rebuilt as a real department CRUD API.
+3. All backend routes now use one shared MySQL connection pool (backend/db.js).
+4. Department search, add, edit, activate/deactivate and safe delete are included.
+5. Student department dropdown shows only active departments and gives a clear error if none are available.
+6. Frontend API URLs work through the Express server instead of depending on a fixed port when possible.
+7. AJV campus images were upscaled and sharpened for clearer display.
+8. Real backend .env secrets are NOT included in this ZIP. Create backend/.env from backend/.env.example.
+9. Department is_active is included in the fresh schema and patched for older databases.
+
+SETUP
+-----
+1. Extract this ZIP.
+2. Open the extracted folder in VS Code.
+3. Open MySQL Workbench.
+4. Run:
+      database/schema.sql
+      database/schema_patch.sql
+5. Create backend/.env using backend/.env.example and put your own MySQL password + JWT secret.
+6. Open VS Code terminal:
+      cd backend
+      npm install
+      npm start
+7. Open in browser:
+      http://localhost:5000/
+
+DEMO LOGIN
+----------
+Admin   : admin / Admin@123
+Faculty : faculty / Faculty@123
+Student : STU001 / Student@123
+
+OPTIONAL DEMO DATA
+------------------
+After schema setup, run:
+      cd backend
+      node seed.js
+
+IMPORTANT
+---------
+- Do not open the HTML pages directly with file:// when testing the complete application.
+- Keep the backend terminal running.
+- Do not run two servers on port 5000.
+- Never upload backend/.env to GitHub.
+
+
+UI UPDATE: Professional CollegeConnect UI applied across all pages. Original AJV campus images removed and replaced with a clean generic college-campus hero image at frontend/assets/campus-hero.png. Existing API/database functionality and page JavaScript were preserved.

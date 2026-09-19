@@ -1,0 +1,8 @@
+AJV CollegeConnect — AI Glass Campus UI
+
+This package is based on the student-add-fixed project.
+Only the visual layer/assets were changed for this version:
+- New AI Glass / futuristic campus-management theme
+- Generated college-campus image used as hero/login background
+- Improved sidebar, cards, forms, tables, modals and login styling
+- Existing HTML, JavaScript, API routes, database code and student-add logic are preserved

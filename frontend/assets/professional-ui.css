@@ -1,0 +1,272 @@
+/* AJV CollegeConnect — bright campus management system
+   Shared presentation layer for every portal and admin page. */
+:root{
+  --ink:#16243a;
+  --muted:#667892;
+  --blue:#1769e0;
+  --blue-dark:#0f4fbc;
+  --cyan:#08a9c7;
+  --violet:#7559d9;
+  --green:#138a63;
+  --amber:#a76400;
+  --red:#c83b4e;
+  --surface:#ffffff;
+  --surface-soft:#f6f9fd;
+  --line:#e2eaf4;
+  --shadow:0 16px 40px rgba(36,72,123,.10);
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0!important;
+  min-height:100vh;
+  color:var(--ink)!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 0 0,rgba(20,168,199,.09),transparent 31rem),
+    radial-gradient(circle at 100% 0,rgba(117,89,217,.07),transparent 30rem),
+    #f5f8fc!important;
+}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:linear-gradient(130deg,rgba(255,255,255,.45),transparent 45%)}
+a{color:inherit;text-decoration:none}
+
+button,.btn{
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  min-height:40px!important;
+  padding:10px 15px!important;
+  color:#fff!important;
+  font-weight:750!important;
+  cursor:pointer;
+  background:var(--blue)!important;
+  box-shadow:0 7px 16px rgba(23,105,224,.16)!important;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+button:hover,.btn:hover{transform:translateY(-1px);background:var(--blue-dark)!important;box-shadow:0 10px 22px rgba(23,105,224,.21)!important}
+button:active,.btn:active{transform:none}
+button.secondary,.btn.secondary{background:#edf3fb!important;color:#365170!important;border-color:#dce6f2!important;box-shadow:none!important}
+button.danger{background:#c83b4e!important}
+button.warn,button.warning{background:#fff2d8!important;color:#9a5b00!important;border-color:#f5d697!important;box-shadow:none!important}
+button:disabled{opacity:.62;cursor:not-allowed;transform:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid rgba(8,169,199,.25)!important;outline-offset:2px}
+
+/* Navigation */
+.top{
+  position:sticky!important;
+  top:0!important;
+  z-index:1000!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:20px!important;
+  min-height:76px!important;
+  padding:14px 28px!important;
+  color:var(--ink)!important;
+  background:rgba(255,255,255,.92)!important;
+  border-bottom:1px solid var(--line)!important;
+  box-shadow:0 5px 22px rgba(41,74,118,.06)!important;
+  backdrop-filter:blur(18px);
+}
+.top>div:first-child,.top>h1{min-width:0}
+.top h1{margin:0!important;color:#152b4a!important;font-size:19px!important;letter-spacing:-.3px!important;line-height:1.25!important}
+.top small{color:var(--muted)!important;font-size:11px!important}
+.top .nav,.top nav{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+}
+.top .nav a,.top nav a{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:36px!important;
+  padding:8px 11px!important;
+  border-radius:9px!important;
+  color:#536983!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  transition:.18s ease!important;
+}
+.top .nav a:hover,.top nav a:hover{color:var(--blue)!important;background:#edf5ff!important}
+.top .actions,.top-actions{display:flex!important;align-items:center!important;gap:9px!important;flex-wrap:wrap!important}
+.top .actions>.nav{margin-right:3px}
+.top .actions>button,.top-actions>button{width:auto!important}
+
+/* Main surfaces */
+.wrap{
+  width:min(1380px,100%)!important;
+  max-width:none!important;
+  margin:0 auto!important;
+  min-height:calc(100vh - 76px);
+  padding:30px!important;
+}
+.card,.panel,.welcome{
+  position:relative;
+  overflow:hidden;
+  color:var(--ink)!important;
+  background:rgba(255,255,255,.96)!important;
+  border:1px solid var(--line)!important;
+  border-radius:var(--radius)!important;
+  box-shadow:var(--shadow)!important;
+}
+.card::before,.panel::before{content:"";position:absolute;width:220px;height:220px;right:-130px;top:-140px;border-radius:50%;background:radial-gradient(circle,rgba(8,169,199,.08),transparent 67%);pointer-events:none}
+.card h2,.card h3,.panel h2,.panel h3,.welcome h2{color:#172f50!important}
+
+/* Campus hero */
+.hero-campus{
+  position:relative!important;
+  min-height:245px!important;
+  margin:0 0 22px!important;
+  padding:34px 38px!important;
+  display:flex!important;
+  align-items:center!important;
+  overflow:hidden!important;
+  border:1px solid #cfe1f1!important;
+  border-radius:23px!important;
+  box-shadow:0 18px 45px rgba(38,85,133,.13)!important;
+  background:
+    linear-gradient(90deg,rgba(8,35,71,.92) 0%,rgba(14,66,116,.77) 41%,rgba(14,66,116,.33) 72%,rgba(14,66,116,.10) 100%),
+    url("campus-hero.png") center/cover,
+    linear-gradient(135deg,#0d3157,#1769a8)!important;
+}
+.hero-campus::after{content:"";position:absolute;inset:0;background:linear-gradient(125deg,rgba(8,169,199,.16),transparent 43%,rgba(117,89,217,.14));pointer-events:none}
+.hero-campus>img{display:none!important}
+.hero-copy{position:relative!important;z-index:2;max-width:700px!important}
+.hero-copy h2{margin:0 0 9px!important;color:#fff!important;font-size:32px!important;line-height:1.12!important;letter-spacing:-1px}
+.hero-copy h2::before{content:"CONNECTED CAMPUS / COLLEGECONNECT";display:block;margin-bottom:10px;color:#a6f0f5;font-size:10px;font-weight:850;letter-spacing:2px}
+.hero-copy p{margin:0!important;color:#e4f1fb!important;font-size:13px!important;line-height:1.7!important}
+.student-page .student-hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(7,32,61,.94) 0%,rgba(8,45,82,.78) 42%,rgba(8,45,82,.28) 75%,rgba(8,45,82,.08) 100%),
+    url("student-portal.jpg") center/cover,
+    linear-gradient(135deg,#0d3157,#1769a8)!important;
+  border-color:#cfe1f1!important;
+}
+.student-page .student-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(8,169,199,.10),transparent 45%,rgba(117,89,217,.12));pointer-events:none}
+.student-page .student-hero>*{position:relative;z-index:2}
+.faculty-page .faculty-hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(7,32,61,.94) 0%,rgba(8,45,82,.80) 42%,rgba(8,45,82,.30) 75%,rgba(8,45,82,.08) 100%),
+    url("faculty-portal.jpg") center/cover,
+    linear-gradient(135deg,#0d3157,#1769a8)!important;
+  border-color:#cfe1f1!important;
+}
+.faculty-page .faculty-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(8,169,199,.10),transparent 45%,rgba(117,89,217,.12));pointer-events:none}
+.faculty-page .faculty-hero>*{position:relative;z-index:2}
+
+/* Dashboard metrics */
+.quick,.cards,.grid{gap:16px!important}
+.quick,.cards{grid-template-columns:repeat(auto-fit,minmax(205px,1fr))!important}
+.quick .card,.cards .card{min-height:125px!important;padding:20px!important}
+.quick .card>div:first-child,.cards .card>div:first-child{color:#70839b!important;font-size:10px!important;font-weight:850!important;text-transform:uppercase;letter-spacing:.85px}
+.stat{margin:8px 0!important;font-size:29px!important;font-weight:900!important;color:#183a67!important}
+.stat-label{color:#72859d!important}
+.quick .card>a,.cards .card>a{color:var(--blue)!important;font-weight:800!important;font-size:11px!important}
+
+/* Toolbars, forms and tables */
+.toolbar{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:9px!important;padding:12px!important;margin-bottom:15px!important;border-radius:13px!important;border:1px solid var(--line)!important;background:#f8fbff!important}
+.toolbar input{flex:1;min-width:220px;max-width:470px!important}
+.field{gap:6px!important}
+label,.field label{color:#526a84!important;font-size:11px!important;font-weight:750!important}
+input,select,textarea{width:100%!important;min-height:42px!important;padding:10px 12px!important;border:1px solid #d5e1ee!important;border-radius:10px!important;background:#fff!important;color:#19304e!important;box-shadow:inset 0 1px 2px rgba(35,70,110,.03)!important}
+textarea{min-height:100px!important}
+input::placeholder,textarea::placeholder{color:#9aaabd!important}
+select option{background:#fff;color:#19304e}
+input:focus,select:focus,textarea:focus{border-color:rgba(23,105,224,.55)!important;box-shadow:0 0 0 3px rgba(23,105,224,.10)!important}
+.table-wrap{overflow:auto!important;border-radius:14px!important;border:1px solid var(--line)!important;background:#fff!important}
+table{width:100%!important;border-collapse:separate!important;border-spacing:0!important}
+th{padding:12px!important;color:#5e7490!important;background:#f2f7fc!important;border-bottom:1px solid #dfe8f1!important;font-size:10px!important;font-weight:850!important;text-transform:uppercase;letter-spacing:.65px;white-space:nowrap!important}
+td{padding:11px!important;color:#344d6b!important;border-bottom:1px solid #edf1f6!important;font-size:12px!important;white-space:nowrap}
+tbody tr:hover td{background:#f7fbff!important}
+tr:last-child td{border-bottom:0!important}
+td button{min-height:30px!important;padding:5px 8px!important;font-size:10px!important;border-radius:8px!important;box-shadow:none!important}
+
+/* Status and portal details */
+.badge{display:inline-flex!important;align-items:center;gap:6px;padding:5px 9px!important;border-radius:999px!important;font-size:10px!important;font-weight:850!important}
+.badge.active,.active{color:var(--green)!important;background:#e7f8f0!important;border:1px solid #c9eddd!important}
+.badge.inactive,.inactive{color:var(--red)!important;background:#fff0f2!important;border:1px solid #f4d5db!important}
+.pass{background:#e7f8f0!important;color:var(--green)!important}
+.fail{background:#fff0f2!important;color:var(--red)!important}
+.pending{background:#fff6df!important;color:var(--amber)!important}
+.profile-grid{gap:12px!important}
+.profile-grid .item,.item{padding:13px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:#f8fbfe!important;color:#344d6b!important}
+.item b{color:#7890aa!important;font-size:9px!important;text-transform:uppercase;letter-spacing:.7px}
+.tabs{display:flex!important;flex-wrap:wrap!important;gap:6px!important;padding:6px!important;margin-bottom:16px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:#f8fbff!important}
+.tabs button{background:transparent!important;color:#66809e!important;box-shadow:none!important;border-color:transparent!important}
+.tabs button.active{color:#fff!important;background:var(--blue)!important;border-color:var(--blue)!important}
+.panel{display:none!important}.panel.active{display:block!important}
+.empty,.empty-row{text-align:center!important;color:#8293a8!important;padding:28px!important}
+.error-banner{display:none!important;margin-bottom:16px!important;padding:12px 14px!important;border-radius:10px!important;background:#fff0f2!important;border:1px solid #f4d5db!important;color:#b83247!important}
+.error-banner.show{display:block!important}
+.form-note{color:#7c8da2!important}
+.form-error{color:#b83247!important;background:#fff0f2!important;border:1px solid #f4d5db!important}
+.msg{border-radius:9px!important}
+.ok{background:#e7f8f0!important;color:var(--green)!important}.err{background:#fff0f2!important;color:var(--red)!important}
+
+/* Modal and login */
+.modal{position:fixed!important;inset:0!important;z-index:2000!important;background:rgba(21,42,70,.35)!important;backdrop-filter:blur(8px)!important;display:none;align-items:center!important;justify-content:center!important;padding:18px!important}
+.modal.show{display:flex!important}
+.modal-box{width:min(820px,100%)!important;max-height:90vh!important;overflow:auto!important;padding:26px!important;color:var(--ink)!important;background:#fff!important;border:1px solid #d7e4f0!important;border-radius:20px!important;box-shadow:0 28px 80px rgba(25,63,105,.22)!important}
+.modal-box h2{color:#17395f!important}
+body:has(.login){
+  position:relative!important;
+  isolation:isolate;
+  background:#0e3559!important;
+}
+body:has(.login)::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  background-image:url("images/college-campus-login.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+body:has(.login)::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  /* Subtle blue/white overlay: keeps the campus visible, form stays readable */
+  background:
+    linear-gradient(112deg,rgba(14,53,98,.34) 0%,rgba(23,105,224,.14) 48%,rgba(255,255,255,.18) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.06),rgba(9,44,84,.22));
+}
+@media(max-width:650px){
+  .login{padding:16px!important}
+  .login-box{width:min(465px,100%)!important;padding:26px 20px!important}
+}
+.login{background:transparent!important;width:100%!important;min-height:100vh!important;margin-left:0!important;display:grid!important;place-items:center!important;padding:28px!important}
+.login-box{width:min(465px,94%)!important;padding:34px!important;border-radius:24px!important;border:1px solid rgba(255,255,255,.92)!important;background:rgba(255,255,255,.95)!important;box-shadow:0 25px 70px rgba(13,39,73,.30)!important;backdrop-filter:blur(20px)}
+.login-box::before{content:"CC";display:grid;place-items:center;width:62px;height:62px;margin:0 auto 16px;border-radius:18px;color:#fff;font-size:19px;font-weight:950;background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 12px 28px rgba(23,105,224,.23)}
+.login-box h1{margin:0 0 6px!important;text-align:center!important;font-size:25px!important;color:#17395f!important}
+.login-box>p{margin:0 0 24px!important;text-align:center!important;color:#71839b!important;font-size:11px!important}
+.login-box button{width:100%!important;min-height:46px!important;margin-top:5px}
+.login-box .msg{min-height:20px}
+.login-box::after{content:"SECURE CAMPUS WORKSPACE";display:block;margin-top:18px;text-align:center;color:#8ba0b7;font-size:8px;font-weight:850;letter-spacing:1.5px}
+
+@media(max-width:980px){
+  .top{align-items:flex-start!important;flex-wrap:wrap!important;padding:14px 18px!important}
+  .top .nav,.top nav{justify-content:flex-start!important;overflow:auto!important}
+  .wrap{padding:22px!important}
+}
+@media(max-width:650px){
+  .top h1{font-size:16px!important}
+  .top .actions,.top-actions{width:100%!important;justify-content:space-between!important}
+  .top .actions>.nav{width:100%!important;justify-content:flex-start!important}
+  .wrap{padding:13px!important}
+  .hero-campus{min-height:250px!important;padding:24px!important}
+  .hero-copy h2{font-size:25px!important}
+  .quick,.cards,.grid{grid-template-columns:1fr!important}
+  .toolbar input{max-width:none!important}
+  body:has(.login)::after{background:linear-gradient(112deg,rgba(7,31,61,.62),rgba(9,54,94,.33))}
+}
